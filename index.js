@@ -17,11 +17,11 @@ var create = require('cordova-create');
 var shell = require('shelljs');
 
 function execPromise(shellCommand) {
-	console.log(`Execute: ${shellCommand}`);
+	// console.log(`Execute: ${shellCommand}`);
   return new Promise((resolve, reject) => {
     shell.exec(shellCommand, { silent: false }, (code, stdout, stderr) => {
       if (code == 0) {
-				console.log(`Execute: ${shellCommand} DONE`);
+				// console.log(`Execute: ${shellCommand} DONE`);
 				resolve();
         return;
       }
