@@ -14,6 +14,22 @@ var mkdirp = require('mkdirp');
 var through = require('through2');
 var gutil = require('gulp-util');
 var create = require('cordova-create');
+var shell = require('shelljs');
+
+function execPromise(shellCommand) {
+	console.log(`Execute: ${shellCommand}`);
+  return new Promise((resolve, reject) => {
+    shell.exec(shellCommand, { silent: false }, (code, stdout, stderr) => {
+      if (code == 0) {
+				console.log(`Execute: ${shellCommand} DONE`);
+				resolve();
+        return;
+      }
+			console.log(`Execute: ${shellCommand} failed (code = ${code})`);
+      reject(new gutil.PluginError('gulp-cordova-create', `'${shellCommand}' failed:\n${stderr}`));
+    });
+  });
+}
 
 module.exports = function (options) {
 	var firstFile;
@@ -34,12 +50,15 @@ module.exports = function (options) {
 
 			var self = this;
 			var dir = options.dir || '.cordova';
-			var config = {lib: {www: {url: firstFile.path, template: true}}};
+			var config = {lib: {www: { url: firstFile.path }}};
 
 			// Make sure the directory exists
 			mkdirp(dir, function () {
 				// Create the cordova project in the correct directory
-				create(dir, options.id, options.name, config).then(function () {
+				create(dir, options.id, options.name, config)
+				.then(() => execPromise(`rm -r ${dir}/www`))
+				.then(() => execPromise(`cp -a ${config.lib.www.url} ${dir}/www`))
+				.then(function () {
 					// Pass in the cordova project directory to the next step
 					self.push(new gutil.File({
 						base: firstFile.cwd,
